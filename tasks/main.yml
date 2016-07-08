@@ -1,0 +1,37 @@
+---
+# tasks file for snmp
+- name: Verify this is RHEL or CentOS 
+  assert:
+    that:
+      ansible_os_family == "RedHat" 
+
+- name: install snmp 
+  yum: name={{ item }} state=latest
+  with_items:
+   - net-snmp-utils
+   - net-snmp
+  notify: enable snmpd
+
+- name: Configure snmpd 
+  template:
+    src=templates/snmpd.conf.j2
+    dest=/etc/snmp/snmpd.conf
+    owner=root
+    group=root
+    mode=0644
+  notify: restart snmpd
+
+- name: Stop snmpd before adding the SNMPv3 user
+  service:
+    name: snmpd
+    state: stopped
+
+- name: Add the SNMPv3 user
+  command: /usr/bin/net-snmp-create-v3-user -ro -A {{ auth_pass }} -a MD5 -x DES {{ snmp_user }}
+
+- name: start/enable snmpd
+  service:
+    name: snmpd
+    state: started
+    enabled: yes
+

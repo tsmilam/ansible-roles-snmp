@@ -1,0 +1,5 @@
+---
+# vars file for snmp
+auth_pass: catspajamas 
+snmp_user: solarwinds
+
